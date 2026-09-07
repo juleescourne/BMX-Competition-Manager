@@ -23,18 +23,12 @@ The application manages riders, clubs, championships, event stages, age categori
 
 The project uses a relational model covering users, riders, clubs, championships, stages, categories, races, heats, participations and lane rotations.
 
-![Class diagram](docs/classes.png)
-
-A package-level diagram is also available in [`docs/packages.png`](docs/packages.png).
 
 ## Project structure
 
 ```text
 BMX/
 ├── .github/workflows/tests.yml
-├── docs/
-│   ├── classes.png
-│   └── packages.png
 ├── source/
 │   ├── app.py
 │   ├── seed.py
