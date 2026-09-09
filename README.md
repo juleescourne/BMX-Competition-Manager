@@ -1,6 +1,12 @@
 # BMX Competition Manager
 
+[![Tests](https://github.com/juleescourne/bmx-competition-manager/actions/workflows/tests.yml/badge.svg)](https://github.com/juleescourne/bmx-competition-manager/actions/workflows/tests.yml)
+![Flask](https://img.shields.io/badge/Flask-3.x-000000)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+
 A Flask web application for managing BMX championships and race events.
+
+> Part of my Data portfolio: [juleescourne.github.io/portfolio-data-analyst](https://juleescourne.github.io/portfolio-data-analyst/)
 
 The application manages riders, clubs, championships, event stages, age categories, race phases, lane assignments and results through a relational SQLAlchemy data model. It also contains the competition logic used to generate race structures and advance riders between phases.
 
@@ -21,7 +27,47 @@ The application manages riders, clubs, championships, event stages, age categori
 
 ## Data model
 
-The project uses a relational model covering users, riders, clubs, championships, stages, categories, races, heats, participations and lane rotations.
+A championship is split into stages; each stage opens age categories; each category
+generates races (pools, then quarter-, semi- and finals); each race is run over several
+heats. Riders enter at stage level and are then attached to the category, race and heat
+they take part in — which is why four separate `Participant_*` association tables exist.
+
+```mermaid
+erDiagram
+    CLUB ||--o{ TITULAIRE : registers
+    SEXE ||--o{ TITULAIRE : classifies
+    CLUB ||--o{ ETAPE : hosts
+    CHAMPIONNAT_TYPE ||--o{ CHAMPIONNAT : types
+    CHAMPIONNAT ||--o{ ETAPE : contains
+    ETAPE ||--o{ CATEGORIE : opens
+    CATEGORIE_TYPE ||--o{ CATEGORIE : types
+    CATEGORIE ||--o{ RACE : generates
+    RACE_TYPE ||--o{ RACE : types
+    RACE ||--o{ MANCHE : contains
+    COULOIR ||--o{ MANCHE : rotates
+    TITULAIRE ||--o{ PARTICIPANT_ETAPE : enters
+    ETAPE ||--o{ PARTICIPANT_ETAPE : lists
+    TITULAIRE ||--o{ PARTICIPANT_CATEGORIE : competes
+    CATEGORIE ||--o{ PARTICIPANT_CATEGORIE : fields
+    TITULAIRE ||--o{ PARTICIPANT_RACE : races
+    RACE ||--o{ PARTICIPANT_RACE : ranks
+    TITULAIRE ||--o{ PARTICIPANT_MANCHE : rides
+    MANCHE ||--o{ PARTICIPANT_MANCHE : scores
+```
+
+| Table | Role |
+| --- | --- |
+| `titulaire` | Rider identity, licence number and club |
+| `club` / `sexe` | Reference tables |
+| `championnat` / `etape` | A championship and its stages |
+| `categorie` | An age category opened for a stage, with its progression flags |
+| `race` / `manche` | Races within a category, and the heats within a race |
+| `couloir` | Lane-rotation patterns applied across heats |
+| `participant_*` | The four association tables linking riders to stage, category, race and heat |
+
+The `categorie` table carries the progression state of a category (`pool_finie`,
+`quart_genere`, `demi_finie`, `finale_genere`…), which is what drives the automatic
+generation of the next phase.
 
 
 ## Project structure
@@ -125,8 +171,6 @@ pytest -q
 ```
 
 A small GitHub Actions workflow runs the smoke test on pushes and pull requests.
-
-## Repository hygiene and security
 
 ## Maintenance notes
 
