@@ -5,7 +5,7 @@ from datetime import datetime
 import random
 from math import ceil
 
-from .__init__ import db
+from . import db
 from .models import User, Titulaire, Club, Sexe, Championnat, Championnat_type, Etape, Categorie_type, Participant_etape, Race_type, Couloir, Race, Participant_race, Manche, Participant_manche, Categorie, Participant_categorie
 
 views = Blueprint("views", __name__)
