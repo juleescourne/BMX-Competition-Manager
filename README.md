@@ -75,6 +75,8 @@ generation of the next phase.
 ```text
 BMX/
 ├── .github/workflows/tests.yml
+├── db/
+│   └── demo_data.sql
 ├── source/
 │   ├── app.py
 │   ├── seed.py
@@ -131,7 +133,33 @@ python source/seed.py --username admin --password "choose-a-local-password"
 
 Do not reuse a real password here. This command is intended for a local development account.
 
-### 4. Run the application
+### 4. Load the demo dataset (optional but recommended)
+
+`db/demo_data.sql` creates the schema if needed and loads a full regional
+championship: 6 Normandy clubs, 60 riders spread across 6 age categories,
+one 2026 championship and two stages.
+
+```bash
+sqlite3 source/instance/bmx.db < db/demo_data.sql
+```
+
+If the `sqlite3` command-line tool is not installed:
+
+```bash
+python -c "import sqlite3; sqlite3.connect('source/instance/bmx.db').executescript(open('db/demo_data.sql', encoding='utf-8').read())"
+```
+
+The script contains **no user account and no password hash** — `seed.py` above
+already created your local account. It also stops short of creating races: the
+application generates those itself from the *Catégories* screen, and wipes any
+existing structure each time that form is submitted, so pre-loading them would
+serve no purpose.
+
+To see the competition logic run: open a stage, go to **Catégories**, tick the
+riders, and validate. From 60 riders the application produces 6 categories,
+15 races and 33 heats with lane rotations applied.
+
+### 5. Run the application
 
 ```bash
 python source/app.py
@@ -175,6 +203,21 @@ A small GitHub Actions workflow runs the smoke test on pushes and pull requests.
 ## Maintenance notes
 
 This is an existing application that has been cleaned for publication rather than rewritten from scratch. Several unambiguous runtime issues from the original code were corrected, including invalid foreign-key assignments, inconsistent relationship names, plate-number validation and quarter/semi-final variable mistakes.
+
+Two further defects were found while preparing the demo dataset:
+
+- `models.py`, `auth.py` and `views.py` imported the database handle with
+  `from .__init__ import db`. Python registers `website` and `website.__init__`
+  as two distinct modules, so `SQLAlchemy()` was instantiated twice: the models
+  were bound to one instance while `init_app()` and `create_all()` ran on the
+  other. No table was ever created, and any query raised *"The current Flask app
+  is not registered with this 'SQLAlchemy' instance"*. The imports now use
+  `from . import db`. The smoke test did not catch it because `/login` renders
+  without touching the database.
+- The navigation bar requested `logo.svg` while the file on disk was `Logo.svg`.
+  Windows resolves this, Linux does not — the logo would have 404'd on any
+  Unix deployment. The asset was also a third-party sporting federation's logo,
+  and has been replaced by a neutral project mark.
 
 The competition progression code contains domain-specific rules for different rider counts. Those rules should be validated against the intended BMX competition regulations before using the application for an official event, and additional tests should be added for each participant-count boundary.
 
