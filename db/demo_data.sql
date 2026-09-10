@@ -224,7 +224,7 @@ INSERT OR IGNORE INTO categorie_type (id, min_age, max_age, name) VALUES
     (4, 11, 12, '11/12 ans'),
     (5, 13, 14, '13/14 ans'),
     (6, 15, 16, '15/16 ans'),
-    (7, 17, 24, '14/24 ans'),
+    (7, 17, 24, '17/24 ans'),
     (8, 25, 40, '25/40 ans'),
     (9, 41, 99999, '41 ans et plus');
 

@@ -1246,7 +1246,14 @@ def manches_post(etape_id, championnat_id, categorie_type_id, race_id) :
                 place_arrive = request.form.get(f'place_arrive_{participant.titulaire.id}')
                 if place_arrive is not None :
                     if place_arrive != "none" :
-                        participant.resultat = place_arrive
+                        # La place arrive du formulaire sous forme de chaine. SQLite la
+                        # convertit grace a l'affinite INTEGER, mais PostgreSQL — propose
+                        # dans .env.example — refuse une chaine dans une colonne entiere.
+                        # On convertit donc explicitement.
+                        try :
+                            participant.resultat = int(place_arrive)
+                        except ValueError :
+                            participant.resultat = 9
                     else :
                         participant.resultat = 9
 
